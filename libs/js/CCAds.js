@@ -32,7 +32,6 @@ let _AD_STATUS = {
 let AD_LIST = {};
 
 cc.Ads._eventReceiver = function (eventName, placementId, code) {
-    cc.log("cc.Ads._eventReceiver", eventName, placementId, code);
     let item = AD_LIST[placementId];
     if (!item) {
         cc.warn('Ads not found ', placementId);
@@ -60,7 +59,6 @@ class _baseAds {
                 let methodSignature;
                 if (this.type === cc.Ads.ADS_TYPE.BANNER) {
                     methodSignature = "(Ljava/lang/String;II)V";
-                    cc.log("_createAd native params ", className, methodName, methodSignature, this.id, this.size, this.position);
                     jsb.reflection.callStaticMethod(className, methodName, methodSignature, this.id, this.size, this.position);
                 } else {
                     methodSignature = "(ILjava/lang/String;)V";
@@ -102,9 +100,7 @@ class _baseAds {
             } else if (this.status === _AD_STATUS.NO_FILL) {
                 throw _AD_STATUS.NO_FILL;
             } else {
-                cc.log("in createdPromise");
                 this.once("onCreated", () => {
-                    cc.log("receive onCreated");
                     resolve();
                 });
             }
@@ -113,21 +109,18 @@ class _baseAds {
         return createdPromise.then(() => {
             return new Promise((resolve, reject) => {
                 if (this.status >= _AD_STATUS.LOADED) {
-                    cc.log("already load");
                     resolve();
                     return;
                 } else if (this.sataus === _AD_STATUS.NO_FILL) {
-                    cc.log("no fill");
+                    cc.log("ad no fill");
                     reject();
                 }
 
                 this.once("onAdLoaded", () => {
-                    cc.log("in onAdLoaded");
                     resolve();
                 });
 
                 this.once("onError", (e) => {
-                    cc.log("invoke onError", e);
                     reject(e);
                 });
 
@@ -142,7 +135,7 @@ class _baseAds {
                 }
             });
         }).catch((e) => {
-            cc.error("catch ads error", e);
+            cc.error("load ads error", e);
         });
     }
 

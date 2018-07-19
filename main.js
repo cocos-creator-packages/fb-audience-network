@@ -191,7 +191,7 @@ function _handleIOS(options) {
         }
 
         //todo:如果已经存在这个文件，要考虑是否自己在往上面加上AN的framework，目前先跳过
-        Editor.log('Podfile already exist skip...');
+        Editor.log('Podfile already exist skip create Podfile...');
         resolve();
     });
 }
@@ -205,7 +205,6 @@ function handleEvent(options, cb) {
         return;
     }
 
-    //progress.push(audience.handleAudience(options));
     if (options.actualPlatform.toLowerCase() === 'android') {
         handle = _handleAndroid(options);
     } else if (options.actualPlatform.toLowerCase() === "ios") {
@@ -213,8 +212,6 @@ function handleEvent(options, cb) {
     }
 
     handle.then(() => {
-        cb && cb();
-    }).catch((e) => {
         cb && cb();
     });
 }

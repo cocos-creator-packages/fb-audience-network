@@ -13,6 +13,7 @@ const spawn = require('child_process').spawn;
  * @returns {Promise}
  */
 function _handleAndroid(options) {
+    Editor.log('Audience Network--> adding Audience Network Android support');
     return new Promise((resolve, reject) => {
 
         //修改build.gradle文件
@@ -42,14 +43,18 @@ function _handleAndroid(options) {
             Fs.copySync(srcAndroidPath, destAndroidPath);
         }
 
-
         _copyFsupportFile(options);
 
         resolve();
     });
 }
 
-function _copyFsupportFile(options){
+/**
+ * android 和iOS 共用的资源拷贝
+ * @param options
+ * @private
+ */
+function _copyFsupportFile(options) {
     //拷贝脚本文件
     let srcJsPath = Editor.url('packages://fb-audience-network/libs/js');
     let destJsPath = Path.join(options.dest, 'src');
@@ -69,13 +74,14 @@ function _copyFsupportFile(options){
         Fs.writeFileSync(mainPath, mainFile);
     }
 }
+
 /**
- * 添加 facebook live stream 的 sdk 到 iOS 工程
+ * 添加 facebook live stream 的 sdk 到 iOS 工程，并完成配置
  * @param options
  * @returns {Promise}
  */
 function _handleIOS(options) {
-    console.log("fb-audience-network handle ios");
+    Editor.log('Audience Network--> adding Audience Network iOS support');
     return new Promise((resolve, reject) => {
         //第一步，判断是否安装pod 命令
         let podCheck = spawnSync('pod');
@@ -85,18 +91,82 @@ function _handleIOS(options) {
             return;
         }
 
+        //第二步：拷贝必要的文件
         _copyFsupportFile(options);
 
-        //第二步，创建Podfile文件
-        let podPath = Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/Podfile');
+        //第三步：复制FacebookAN的代码到工程，并加入引用
+        let srcSupportPath = Editor.url('packages://fb-audience-network/libs/ios/support');
+        let destSupportPath = Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/ios');
+        if (!Fs.existsSync(Path.join(destSupportPath, "FacebookAN.mm"))) {
+            Fs.copySync(srcSupportPath, destSupportPath);
+        }
+
+        //第二步，为工程添加framework索引
+        let projectPath = Path.join(options.dest, `frameworks/runtime-src/proj.ios_mac/${options.projectName}.xcodeproj/project.pbxproj`);
+        if (!Fs.existsSync(projectPath)) {
+            Editor.error('Can\'t find xcodeproj file at path: ', projectPath);
+            reject();
+            return;
+        }
+        let project = xcode.project(projectPath);
+        project.parseSync();
+
+        let section = project.pbxNativeTargetSection();
         let targetName = `${options.projectName}-mobile`;
+        let target = null;
+
+        //先找下有没有默认的target
+        for (let k in section) {
+            let item = section[k];
+            if (typeof item !== 'string') continue;
+            if (item === targetName) {
+                target = k.split("_")[0];
+                break;
+            }
+        }
+
+        //没有的话尝试找一下mobile的
+        if (target == null) {
+            for (let k in section) {
+                let item = section[k];
+                if (typeof item !== 'string') continue;
+                if (item && item.indexOf('mobile') !== -1) {
+                    target = k.split("_")[0];
+                    break;
+                }
+            }
+        }
+        //如果依然找不到要build的target那么让用户自己去添加吧
+        if (!target) {
+            Editor.error('Can\'t find project target: ', targetName, 'add link libraries failed , you can add link libraries at Xcode');
+        }
+        let groupConfig = project.getPBXObject("PBXGroup");
+        let targetGroup = null;
+        for (let k in groupConfig) {
+            let item = groupConfig[k];
+            if (typeof item !== 'string') continue;
+            if (item === 'ios') {
+                targetGroup = k.split("_")[0];
+                break;
+            }
+        }
+
+        project.addFile('ios/FacebookAN.h', targetGroup);
+        project.addSourceFile('ios/FacebookAN.mm', {
+            target: target,
+        }, targetGroup);
+
+        Fs.writeFileSync(projectPath, project.writeSync());
+
+        //第四步，创建Podfile文件
+        let podPath = Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/Podfile');
+        targetName = `${options.projectName}-mobile`;
         if (!Fs.existsSync(podPath)) {
-            let podTemplate = Fs.readFileSync(Editor.url('packages://fb-audience-network/libs/ios/Podfile'), 'utf-8');
+            let podTemplate = Fs.readFileSync(Editor.url('packages://fb-audience-network/libs/ios/cocoapods/Podfile'), 'utf-8');
             podTemplate = podTemplate.replace(/(%[s])/g, targetName);
             Fs.writeFileSync(podPath, podTemplate);
 
             //第三步，执行pod install命令，
-            console.log("cwd is ", Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/'));
             let genPod = spawn('pod', ['install'], {cwd: Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/')});
 
             genPod.stdout.on("data", (data) => {
@@ -130,7 +200,6 @@ function handleEvent(options, cb) {
     let handle = Promise.resolve();
     let config = Editor._projectProfile.data['facebook'];
 
-    console.log("an handleEvent ---------", config);
     if (!config.enable || !config.audience.enable) {
         cb && cb();
         return;

@@ -77,6 +77,10 @@ function _copyFsupportFile(options) {
 async function _handleIOS(options) {
     Editor.log('Audience Network--> adding Audience Network iOS support');
     //第一步，判断是否安装pod 命令
+
+    if (process.env.PATH.indexOf('/usr/local/bin') === -1) {
+        process.env.PATH += ":/usr/local/bin";
+    }
     let podCheck = spawnSync('pod');
     if (podCheck.error) {
         Editor.error('Can\'t find pod command , please install CocoaPods (https://cocoapods.org/)');
@@ -158,6 +162,18 @@ async function _handleIOS(options) {
         Fs.writeFileSync(podPath, podTemplate);
 
         //第三步，执行pod install命令，
+        await _loadPodFile(options);
+        return Promise.resolve();
+    }
+
+    //todo:如果已经存在这个文件，要考虑是否自己在往上面加上AN的framework，目前先跳过
+    Editor.log('Podfile already exist skip create Podfile...');
+}
+
+
+function _loadPodFile(options) {
+    return new Promise((resolve, reject) => {
+
         let genPod = spawn('pod', ['install'], {cwd: Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/')});
 
         genPod.stdout.on("data", (data) => {
@@ -169,19 +185,18 @@ async function _handleIOS(options) {
         });
 
         genPod.on("error", (data) => {
-            return Promise.reject(data.toString());
+            reject(data.toString());
         });
 
         genPod.on("close", (code) => {
             if (code !== 0) {
-                return Promise.reject(code);
+                reject();
+                return
             }
+            resolve();
         });
-        return Promise.resolve();
-    }
 
-    //todo:如果已经存在这个文件，要考虑是否自己在往上面加上AN的framework，目前先跳过
-    Editor.log('Podfile already exist skip create Podfile...');
+    });
 }
 
 async function handleEvent(options, cb) {

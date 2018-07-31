@@ -204,6 +204,7 @@ async function handleEvent(options, cb) {
 
     if (!config.enable || !config.audience.enable) {
         cb && cb();
+        return;
     }
 
     if (options.actualPlatform.toLowerCase() === 'android') {

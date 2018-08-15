@@ -1,7 +1,7 @@
 'use strict';
 const Path = require('fire-path');
 const Fs = require('fire-fs');
-const {android, ios} = require('../../share/native-packer');
+const {android, ios} = Editor.require('app://editor/core/native-packer');
 /**
  * 添加 facebook audience network 的 sdk 到 android 工程
  * @param options
@@ -22,7 +22,7 @@ async function _handleAndroid(options) {
 
     let fileList = ['FacebookAN.java'];
     fileList.forEach((file) => {
-        androidPacker.copyFile(Path.join(srcAndroidPath, file), Path.join(destAndroidPath, file));
+        androidPacker.ensureFile(Path.join(srcAndroidPath, file), Path.join(destAndroidPath, file));
     });
 
     _copyFsupportFile(options, androidPacker);
@@ -64,7 +64,7 @@ async function _handleIOS(options) {
     let destSupportPath = Path.join(options.dest, 'frameworks/runtime-src/proj.ios_mac/ios');
     let fileList = ['FacebookAN.mm', 'FacebookAN.h'];
     fileList.forEach((file) => {
-        iosPacker.copyFile(Path.join(srcSupportPath, file), Path.join(destSupportPath, file));
+        iosPacker.ensureFile(Path.join(srcSupportPath, file), Path.join(destSupportPath, file));
     });
 
     //加入Facebook文件的引用

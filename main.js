@@ -77,9 +77,7 @@ async function _handleIOS(options) {
     let target = `${options.projectName}-mobile`;
     if (!iosPacker.isDependenceExist(dependence, target)) {
         iosPacker.addPodDependenceForTarget(dependence, target);
-        await iosPacker.executePodFile().catch((e) => {
-            Editor.error("pod install fail! please check the console log for more detail");
-        });
+        await iosPacker.executePodFile();
     }
 }
 
@@ -93,11 +91,11 @@ async function handleEvent(options, cb) {
 
     if (options.actualPlatform.toLowerCase() === 'android') {
         await _handleAndroid(options).catch((e) => {
-            Editor.log("Some error have occurred while adding Facebook Audience Network Android SDK ")
+            Editor.log("Some error have occurred while adding Facebook Audience Network Android SDK ", e);
         });
     } else if (options.actualPlatform.toLowerCase() === "ios") {
         await _handleIOS(options).catch((e) => {
-            Editor.log("Some error have occurred while adding Facebook Audience Network iOS SDK ")
+            Editor.log("Some error have occurred while adding Facebook Audience Network iOS SDK ", e);
         });
     }
     cb && cb();

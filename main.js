@@ -93,7 +93,7 @@ function trackEvent() {
 async function handleEvent(options, cb) {
     let config = Editor._projectProfile.data['facebook'];
 
-    if (!config.enable || !config.audience.enable) {
+    if (!config || !config.enable || !config.audience.enable) {
         cb && cb();
         return;
     }

@@ -81,15 +81,6 @@ async function _handleIOS(options) {
     }
 }
 
-function trackEvent() {
-    let config = Editor._projectProfile.data['facebook'];
-    Editor.Metrics.trackEvent({
-        category: 'Facebook',
-        action: 'Facebook Audience Network APPID',
-        label: config.appID || "",
-    });
-}
-
 async function handleEvent(options, cb) {
     let config = Editor._projectProfile.data['facebook'];
 
@@ -97,8 +88,6 @@ async function handleEvent(options, cb) {
         cb && cb();
         return;
     }
-
-    trackEvent();
 
     if (options.actualPlatform.toLowerCase() === 'android') {
         await _handleAndroid(options).catch((e) => {

@@ -89,16 +89,16 @@ async function handleEvent(options, cb) {
         return;
     }
 
-    if (options.actualPlatform.toLowerCase() === 'android') {
-        await _handleAndroid(options).catch((e) => {
-            Editor.log("Some error have occurred while adding Facebook Audience Network Android SDK ", e);
-        });
-    } else if (options.actualPlatform.toLowerCase() === "ios") {
-        await _handleIOS(options).catch((e) => {
-            Editor.log("Some error have occurred while adding Facebook Audience Network iOS SDK ", e);
-        });
+    try {
+        if (options.actualPlatform.toLowerCase() === 'android') {
+            await _handleAndroid(options);
+        } else if (options.actualPlatform.toLowerCase() === "ios") {
+            await _handleIOS(options);
+        }
+        cb && cb();
+    } catch (e) {
+        cb && cb(e);
     }
-    cb && cb();
 }
 
 module.exports = {

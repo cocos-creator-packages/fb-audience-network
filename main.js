@@ -84,21 +84,35 @@ async function _handleIOS(options) {
 async function handleEvent(options, cb) {
     let config = Editor._projectProfile.data['facebook'];
 
-    if (!config.enable || !config.audience.enable) {
+    if (!config || !config.enable || !config.audience.enable) {
         cb && cb();
         return;
     }
 
     try {
         if (options.actualPlatform.toLowerCase() === 'android') {
+            //开始构建的时候，先发个事件
+            trackBuildEvent();
+
             await _handleAndroid(options);
         } else if (options.actualPlatform.toLowerCase() === "ios") {
+            //开始构建的时候，先发个事件
+            trackBuildEvent();
+
             await _handleIOS(options);
         }
         cb && cb();
     } catch (e) {
         cb && cb(e);
     }
+}
+
+function trackBuildEvent() {
+    Editor.Metrics.trackEvent({
+        category: 'Facebook',
+        action: 'Facebook Audience Network',
+        label: 'Build'
+    });
 }
 
 module.exports = {

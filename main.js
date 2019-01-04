@@ -90,12 +90,15 @@ async function handleEvent(options, cb) {
     }
 
     try {
-        //开始构建的时候，先发个事件
-        trackBuildEvent();
-
         if (options.actualPlatform.toLowerCase() === 'android') {
+            //开始构建的时候，先发个事件
+            trackBuildEvent();
+
             await _handleAndroid(options);
         } else if (options.actualPlatform.toLowerCase() === "ios") {
+            //开始构建的时候，先发个事件
+            trackBuildEvent();
+
             await _handleIOS(options);
         }
         cb && cb();

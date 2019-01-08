@@ -79,6 +79,35 @@ async function _handleIOS(options) {
         iosPacker.addPodDependenceForTarget(dependence, target);
         await iosPacker.executePodFile();
     }
+
+    //往 UserConfigIOS.debug.xcconfig 添加 pod include
+    _addIncludeToUserConfig(Path.join(options.dest, `frameworks/runtime-src/proj.ios_mac/ios/UserConfigIOS.debug.xcconfig`), options.projectName, 'debug');
+    _addIncludeToUserConfig(Path.join(options.dest, `frameworks/runtime-src/proj.ios_mac/ios/UserConfigIOS.release.xcconfig`), options.projectName, 'release');
+}
+
+/**
+ * UserConfigIOS.xxxx.xcconfig 添加 pod 的 include
+ * @param path
+ * @param projectName
+ * @param mode debug or release
+ * @private
+ */
+function _addIncludeToUserConfig(path, projectName, mode) {
+
+    if (!Fs.existsSync(path)) {
+        Editor.warn('file not found ', path);
+        return;
+    }
+    let str = `#include "Pods/Target Support Files/Pods-${projectName}-mobile/Pods-${projectName}-mobile.${mode}.xcconfig"`;
+    let content = Fs.readFileSync(path, 'utf-8');
+
+    if (content.indexOf(str) !== -1) {
+        return;
+    }
+
+    content += str + "\n";
+    Fs.writeFileSync(path, content);
+
 }
 
 async function handleEvent(options, cb) {

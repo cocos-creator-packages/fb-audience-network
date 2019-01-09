@@ -99,7 +99,7 @@ function _addIncludeToUserConfig(path, projectName, mode) {
         return;
     }
     let str = `#include "Pods/Target Support Files/Pods-${projectName}-mobile/Pods-${projectName}-mobile.${mode}.xcconfig"`;
-    let content = Fs.readFileSync(path, 'utf-8');
+    let content = Fs.readFileSync(path, 'utf8');
 
     if (content.indexOf(str) !== -1) {
         return;

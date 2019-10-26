@@ -111,7 +111,7 @@ function _addIncludeToUserConfig(path, projectName, mode) {
 }
 
 async function handleEvent(options, cb) {
-    let config = Editor._projectProfile.data['facebook'];
+    let config = Editor._projectProfile.get('facebook');
 
     if (!config || !config.enable || !config.audience.enable) {
         cb && cb();

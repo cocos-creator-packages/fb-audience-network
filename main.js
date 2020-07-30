@@ -12,7 +12,7 @@ async function _handleAndroid(options) {
 
     //修改build.gradle文件
     let androidPacker = new android(options);
-    if (!androidPacker.addDependence('com.facebook.android:audience-network-sdk', '4.99.0')) {
+    if (!androidPacker.addDependence('com.facebook.android:audience-network-sdk', '5.10.1')) {
         return Promise.reject();
     }
 

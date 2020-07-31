@@ -72,6 +72,9 @@ async function _handleIOS(options) {
     iosPacker.addFileToProject('ios/FacebookAN.h', 'ios');
     iosPacker.addFileToCompileSource('ios/FacebookAN.mm', targetName, 'ios');
 
+
+    iosPacker.addFramework('CoreVideo.framework', targetName);
+
     //第四步，创建Podfile依赖，如果依赖已经存在，那么不进行修改和更新
     let dependence = "FBAudienceNetwork";
     let target = `${options.projectName}-mobile`;
